@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.muse.rpc</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/usr/bin/python3</string>
+		<string>-u</string>
+		<string>/Users/YOURNAME/muse-discord-rpc/muse_rpc.py</string>
+	</array>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>DISCORD_MUSE_CLIENT_ID</key>
+		<string>YOUR_APPLICATION_ID_HERE</string>
+	</dict>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+	<key>StandardOutPath</key>
+	<string>/tmp/muse-rpc.log</string>
+	<key>StandardErrorPath</key>
+	<string>/tmp/muse-rpc.log</string>
+</dict>
+</plist>
