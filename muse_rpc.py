@@ -63,35 +63,36 @@ SLEEP_AFTER_SECONDS = 600  # 10 min with no keyboard/mouse -> show Sleeping
 # while GIF is the format it actually animates in Rich Presence.
 # Small corner image in every mode: the blue Muse "M" logo asset ("muse"),
 # NOT the fluffy avatar - the user does not want the fluffy avatar as the small circle.
-AHUO_BASE = "https://raw.githubusercontent.com/kitzure/ahuo-discord-assets/main"
+ASSET_BASE = ("https://raw.githubusercontent.com/kitzure/muse_discord_rpc"
+              "/main/assets/avatar/activities")
 SMALL_IMAGE = "muse"
 MODES = {
     "idle": {
-        "image": f"{AHUO_BASE}/ahuo_idle-320.gif",
+        "image": f"{ASSET_BASE}/muse-avatar-idle.gif",
         "details": "Chatting with Muse AI",
         "state": "Idle",
         "large_text": "Muse - Idle",
     },
     "working": {
-        "image": f"{AHUO_BASE}/ahuo_working-320.gif",
+        "image": f"{ASSET_BASE}/muse-avatar-working.gif",
         "details": "Working with Muse",
         "state": "Working",
         "large_text": "Muse - Working",
     },
     "learning": {
-        "image": f"{AHUO_BASE}/ahuo_learning-320.gif",
+        "image": f"{ASSET_BASE}/muse-avatar-making-something.gif",
         "details": "Learning new skills",
         "state": "Getting new skills",
         "large_text": "Muse - Learning",
     },
     "chatting": {
-        "image": f"{AHUO_BASE}/ahuo_working-320.gif",
+        "image": f"{ASSET_BASE}/muse-avatar-working.gif",
         "details": "Chatting with Muse AI",
         "state": "Responding...",
         "large_text": "Muse - Chatting",
     },
     "done": {
-        "image": f"{AHUO_BASE}/ahuo_done-320.gif",
+        "image": f"{ASSET_BASE}/muse-avatar-milestone-level-up.gif",
         "details": "Finished!",
         "state": "Done",
         "large_text": "Muse - Done!",
