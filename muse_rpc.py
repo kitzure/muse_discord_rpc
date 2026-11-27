@@ -67,31 +67,31 @@ AHUO_BASE = "https://raw.githubusercontent.com/kitzure/ahuo-discord-assets/main"
 SMALL_IMAGE = "muse"
 MODES = {
     "idle": {
-        "image": f"{AHUO_BASE}/ahuo_idle-320-v2.gif",
+        "image": f"{AHUO_BASE}/ahuo_idle-320.gif",
         "details": "Chatting with Muse AI",
         "state": "Idle",
         "large_text": "Muse - Idle",
     },
     "working": {
-        "image": f"{AHUO_BASE}/ahuo_working-320-v2.gif",
+        "image": f"{AHUO_BASE}/ahuo_working-320.gif",
         "details": "Working with Muse",
         "state": "Working",
         "large_text": "Muse - Working",
     },
     "learning": {
-        "image": f"{AHUO_BASE}/ahuo_learning-320-v2.gif",
+        "image": f"{AHUO_BASE}/ahuo_learning-320.gif",
         "details": "Learning new skills",
         "state": "Getting new skills",
         "large_text": "Muse - Learning",
     },
     "chatting": {
-        "image": f"{AHUO_BASE}/ahuo_working-320-v2.gif",
+        "image": f"{AHUO_BASE}/ahuo_working-320.gif",
         "details": "Chatting with Muse AI",
         "state": "Responding...",
         "large_text": "Muse - Chatting",
     },
     "done": {
-        "image": f"{AHUO_BASE}/ahuo_done-320-v2.gif",
+        "image": f"{AHUO_BASE}/ahuo_done-320.gif",
         "details": "Finished!",
         "state": "Done",
         "large_text": "Muse - Done!",
