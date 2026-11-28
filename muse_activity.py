@@ -19,6 +19,7 @@ A manual `set_status.py` call still wins for 30 minutes; after that the
 watcher takes over again. It writes only when the derived value changes.
 """
 import json
+from datetime import datetime
 import os
 import re
 import statistics
@@ -258,7 +259,7 @@ def live_activity():
     return {key: str(data[key]) for key in ("state", "details") if data.get(key)}
 
 
-def manual_override(data, idle=0, cpu=0.0, remote=None):
+def manual_override(data, idle=0, cpu=0.0, remote=None, chat=False):
     if not isinstance(data, dict):
         return False
     if data.get("source") == "auto":
@@ -274,6 +275,9 @@ def manual_override(data, idle=0, cpu=0.0, remote=None):
     if data.get("mode") in ("working", "learning"):
         if idle >= 90 and cpu < MUSE_CPU_FLOOR and not (remote and remote.get("mode") not in (None, "idle")):
             return False
+    # A hand-set "chatting" outlives the reply; the transcript is the truth.
+    if data.get("mode") == "chatting" and not chat:
+        return False
     return True
 
 
@@ -289,6 +293,41 @@ def derive(now, idle, activity, last):
     if last.get("last_active") and now - last["last_active"] <= DONE_WINDOW:
         return {"mode": "done", "task": last.get("task", "")}, last
     return {"mode": "idle", "task": ""}, {"last_active": 0, "task": ""}
+
+
+TRANSCRIPT = os.path.expanduser(
+    "~/Library/Caches/com.meta.endo/HatchEmbedDurableCache/chat-main-transcript.json")
+REPLY_FRESH = 20    # a reply that just landed still reads as "responding"
+PENDING_WINDOW = 600  # a user turn younger than this is still awaiting a reply
+
+
+def chat_busy(now):
+    """(streaming, pending) from Muse's transcript; (False, False) if unreadable.
+
+    ``isTextStreaming`` flips while a reply streams, so this replaces CPU
+    sampling: the app tells us directly, and reading a 110 KB JSON costs nothing.
+    """
+    try:
+        data = json.load(open(TRANSCRIPT))
+        messages, order = data["messagesById"], data["messageIds"]
+    except Exception:
+        return False, False
+    if any(message.get("isTextStreaming") for message in messages.values()):
+        return True, True
+    last = messages.get(order[-1]) if order else None
+    if not last:
+        return False, False
+    try:
+        age = now - datetime.fromisoformat(
+            last["createdAt"].replace("Z", "+00:00")).timestamp()
+    except Exception:
+        return False, False
+    role = last.get("role")
+    if role == "user" and 0 <= age <= PENDING_WINDOW:
+        return True, True
+    if role == "assistant" and 0 <= age <= REPLY_FRESH:
+        return True, False
+    return False, False
 
 
 def main():
@@ -308,28 +347,22 @@ def main():
             idle = idle_seconds()
             stats = {}
             activity = newest_activity(now, stats)
-            hidden = [root for root, count in stats.items() if count == 0]
+            denied = stats.get("_denied", {})
+            hidden = [root for root, errs in denied.items() if errs]
             if hidden and not getattr(main, "_warned", False):
                 print("note: no readable files in", ", ".join(hidden),
                       "- macOS privacy protection; grant Full Disk Access to",
                       sys.executable, "to include them", flush=True)
                 main._warned = True
             state, history = derive(now, idle, activity, history)
-            cpu = muse_cpu()
-            # Muse idles around 5-7% (avatar video), so a fixed threshold keeps
-            # latching "chatting" forever: require a rise above the recent median.
-            main._cpu_hist = (getattr(main, "_cpu_hist", []) + [cpu])[-60:]
-            baseline = statistics.median(main._cpu_hist)
-            if cpu >= max(MUSE_CPU_FLOOR, MUSE_CPU_FACTOR * baseline):
-                main._busy = getattr(main, "_busy", 0) + 1
-                main._busy_at = now
-            else:
-                main._busy = 0
-            holding = now - getattr(main, "_busy_at", 0) <= CHAT_HOLD
-            if (getattr(main, "_busy", 0) >= MUSE_CPU_HITS or holding) \
-                    and state["mode"] in ("idle", "done"):
-                # Muse is answering even though nobody is typing and no file changed
+            cpu = 0.0
+            # Muse's own transcript cache says whether it is answering, so no
+            # process sampling is needed (and nothing on the machine gets hot).
+            streaming, pending = chat_busy(now)
+            if streaming and state["mode"] in ("idle", "done"):
                 state = {"mode": "chatting", "task": ""}
+                if pending:
+                    state["state"] = "Thinking..."
             remote = remote_activity()
             if remote and remote["mode"] != "idle":
                 state = {"mode": remote["mode"], "task": remote["task"],
@@ -346,10 +379,11 @@ def main():
                 busy = process_activity()
                 if busy:
                     state["state"] = busy
-            print(time.strftime("%H:%M:%S"), "idle=%ds cpu=%.1f activity=%r -> %s"
-                  % (int(idle), cpu, activity, state), flush=True)
+            print(time.strftime("%H:%M:%S"), "idle=%ds chat=%s/%s activity=%r -> %s"
+                  % (int(idle), streaming, pending, activity, state), flush=True)
             key = (state["mode"], state["task"], state.get("state", ""), state.get("details", ""))
-            if not manual_override(current, idle=idle, cpu=cpu, remote=remote) and key != last_key:
+            if not manual_override(current, idle=idle, cpu=cpu, remote=remote,
+                                   chat=streaming) and key != last_key:
                 state["source"] = "auto"
                 state["updated"] = int(now)
                 tmp = STATUS_FILE + ".tmp"

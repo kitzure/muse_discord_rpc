@@ -72,8 +72,9 @@ launchctl load ~/Library/LaunchAgents/com.muse-discord-rpc.plist
 - **learning** — notes, docs, PDFs or training material changed instead
 - **done** — work stopped 0–45 seconds ago, keeps the project name
 - **idle** — no keyboard/mouse for 90 seconds
+- **chatting** — Muse's own transcript cache says a reply is streaming or a turn is pending
 
-It polls every 10 seconds, reads idle time from `ioreg`, and walks `~/Developer`, `~/Documents` and `~/Desktop` for the newest touched file, naming the **git/Xcode project** rather than the file's sub-folder.
+It polls every 10 seconds, reads idle time from `ioreg`, and walks `~/Developer`, `~/Documents` and `~/Desktop` for the newest touched file, naming the **git/Xcode project** rather than the file's sub-folder. `chatting` needs no CPU sampling: `~/Library/Caches/com.meta.endo/HatchEmbedDurableCache/chat-main-transcript.json` carries an `isTextStreaming` flag, so the app says when it is answering.
 
 Two rules keep it honest:
 
